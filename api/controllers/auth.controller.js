@@ -57,5 +57,5 @@ res.cookie("token", token, {
 }
  
 export const logout = (req, res) => {
-    // db operations
+    res.clearCookie("token").status(200).json({message : "Logged out successfully"});
 }
