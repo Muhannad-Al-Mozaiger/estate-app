@@ -11,8 +11,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoute);
-app.use("/api/post", postRoute);    
-app.use("/api/user", userRoute);
+app.use("/api/users", userRoute);
+app.use("/api/posts", postRoute);    
 app.use("/api/test", testRoute);
 app.listen(3000, () => {
 
