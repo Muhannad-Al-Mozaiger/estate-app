@@ -2,27 +2,29 @@ import { useContext, useState } from "react";
 import "./profileUpdatePage.scss";
 import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest.js";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import UploadWidget from "../../components/uploadWidget/UploadWidget.jsx";
 function ProfileUpdatePage() {
 
-  
-  const [error, setError] = useState(null);
-const {currentUser, updateUser} = useContext(AuthContext);
 
-const navigate = useNavigate();
-const handleSubmit =async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const { username, email, password } = Object.fromEntries(formData);
-  try {
-    const res = await apiRequest.put(`/users/${currentUser.id}`, { username, email, password });
-    updateUser(res.data);
-    navigate("/profile");
-  } catch (err) {
-    setError(err.response.data.message);
-    console.log(err);
+  const { currentUser, updateUser } = useContext(AuthContext);
+  const [avatar, setAvatar] = useState(currentUser.avatar);
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const { username, email, password } = Object.fromEntries(formData);
+    try {
+      const res = await apiRequest.put(`/users/${currentUser.id}`, { username, email, password, avatar });
+      updateUser(res.data);
+      navigate("/profile");
+    } catch (err) {
+      setError(err.response.data.message);
+      console.log(err);
+    }
   }
-}
   return (
     <div className="profileUpdatePage">
       <div className="formContainer">
@@ -55,7 +57,16 @@ const handleSubmit =async (e) => {
         </form>
       </div>
       <div className="sideContainer">
-        <img src={currentUser.avatar || "/noavatar.png"} alt="" className="avatar" />
+        <img src={avatar || "/noavatar.png"} alt="" className="avatar" />
+        <UploadWidget uwConfig={{
+          cloudName: "do5aqbcan",
+          uploadPreset: "estate",
+          multiple: false,
+          maxImageFileSize: 2000000,
+          folder: "avatars",
+        }}
+        setAvatar={setAvatar}
+        />
       </div>
     </div>
   );
