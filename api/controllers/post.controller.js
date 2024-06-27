@@ -61,14 +61,16 @@ export const addPost = async (req, res) => {
 }
 
 export const updatePost = async (req, res) => {
+const inputs= req.body;
     try {
         const updatedPost = await prisma.post.update({
             where: {
                 id: req.params.id
             },
             data: {
-                title: req.body.title,
-                content: req.body.content
+                ...inputs
+                // title: req.body.title,
+                // content: req.body.content
             }
         });
         res.status(200).json(updatedPost);
