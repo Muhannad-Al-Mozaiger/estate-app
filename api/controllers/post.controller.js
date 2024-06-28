@@ -5,7 +5,7 @@ export const getPosts = async (req, res) => {
     try {
         const posts = await prisma.post.findMany({
             where: {
-                city: query.city|| undefined,
+                city: query.city || undefined,
                 type: query.type || undefined,
                 property: query.property || undefined,
                 bedroom: parseInt(query.bedroom) || undefined,
@@ -15,7 +15,10 @@ export const getPosts = async (req, res) => {
                 }
             }
         });
-        res.status(200).json(posts);
+        // setTimeout(()=>{
+            
+            res.status(200).json(posts);
+        // },3000)
     } catch (err) {
         res.status(500).json({ message: "Failed to get posts" });
     }
