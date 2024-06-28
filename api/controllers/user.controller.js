@@ -37,7 +37,7 @@ export const updateUser = async (req, res) => {
         if (password) {
             updatedPassword = bcrypt.hashSync(password, 10);
         }
-        
+
         const updatedUser = await prisma.user.update({
             where: {
                 id
@@ -48,11 +48,11 @@ export const updateUser = async (req, res) => {
                 ...(avatar && { avatar })
             }
         });
-        const { password:userPassword, ...userInfo } = updatedUser;
+        const { password: userPassword, ...userInfo } = updatedUser;
         res.status(200).json(userInfo);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: "Failed to update user!" , error: err});
+        res.status(500).json({ message: "Failed to update user!", error: err });
     }
 };
 
@@ -71,6 +71,45 @@ export const deleteUser = async (req, res) => {
 
         res.status(200).json({ message: "User deleted successfully" });
     } catch (err) {
+        res.status(500).json({ message: "Failed to delete user" });
+    }
+}
+
+export const savePost = async (req, res) => {
+    const postId = req.body.postId;
+    const tokenUserId = req.userId;
+
+    try {
+
+        const savedPost = await prisma.savedPost.findUnique({
+            where: {
+                postId,
+                    userId: tokenUserId
+                // postId_userId: {
+                //     postId,
+                //     userId: tokenUserId
+                // }
+            }
+        });
+        if (savedPost) {
+            await prisma.savedPost.delete({
+                where: {
+                    id: savedPost.id
+                }
+            });
+            res.status(200).json({ message: "Post removed from saved posts" });
+        }
+        else {
+            await prisma.savedPost.create({
+                data: {
+                    postId,
+                    userId: tokenUserId
+                }
+            });
+            res.status(200).json({ message: "Post added to saved posts" });
+        }
+    } catch (err) {
+        console.log(err);
         res.status(500).json({ message: "Failed to delete user" });
     }
 }
