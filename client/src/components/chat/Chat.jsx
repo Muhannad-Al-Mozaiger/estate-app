@@ -1,11 +1,13 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import "./chat.scss";
 import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest";
 import {format} from 'timeago.js';
+import { SocketContext } from "../../context/SocketContext";
 function Chat({ chats }) {
   const [chat, setChat] = useState(false);
   const { currentUser } = useContext(AuthContext);
+  const {socket} = useContext(SocketContext);
 
   const handleOpenChat = async (id, receiver) => {
     try {
@@ -25,22 +27,54 @@ function Chat({ chats }) {
       const res = await apiRequest.post(`/messages/${chat.id}`, { text });
       setChat({ ...chat, messages: [...chat.messages, res.data] });
       e.target.reset() ;
+      socket.emit("sendMessage", {
+        
+        receiverId: chat.receiver.id,
+        data: res.data
+      });
     } catch (error) {
       console.log(error);
     }
   }
+
+  useEffect(() => {
+    const read = async () => {
+      try {
+        await apiRequest.put(`/chats/read/${chat.id}`);
+      } catch (error) {
+        
+      }
+    }
+    if(chat && socket) {
+      socket.on("getMessage", (data) => {
+        if(chat.id===data.chatId) {
+          setChat((prev) => ({
+          
+              ...prev,
+              messages: [...prev.messages, data]
+            
+          }));
+          read();
+        }
+      })
+    }
+    return () => {
+      socket.off("getMessage")
+    }
+  }, [chat,socket])
   return (
     <div className="chat">
+
       <div className="messages">
         <h1>Messages</h1>
-        {chats && chats.map((chat) =>
-          <div className="message" key={chat.id} style={{ backgroundColor: chat.seenBy.includes(currentUser.id) ? "white" : "#fecd514e" }} onClick={() => handleOpenChat(chat.id, chat.receiver)}>
+        {chats && chats.map((c) =>
+          <div className="message" key={c.id} style={{ backgroundColor: c.seenBy.includes(currentUser.id) || chat?.id===c.id ? "white" : "#fecd514e" }} onClick={() => handleOpenChat(c.id, c.receiver)}>
             <img
-              src={chat.receiver.avatar || "/noavatar.png"}
+              src={c.receiver.avatar || "/noavatar.png"}
               alt=""
             />
-            <span>{chat.receiver.username}</span>
-            <p>{chat.lastMessage}</p>
+            <span>{c.receiver.username}</span>
+            <p>{c.lastMessage}</p>
           </div>
         )}
 
